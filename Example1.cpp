@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <limits>
 #include <algorithm>
 #include <tuple>
@@ -33,36 +33,32 @@ struct gett<0, std::tuple<T, Ts...>> {
 	using type = T;
 };
 
-template <size_t Count, typename... Args>
-struct make_tuple{
+template <typename... Args>
+struct make_tuple {
 	using type = std::tuple<std::remove_pointer_t<Args>...>;
 	type b;
-	make_tuple() {}
+	make_tuple(type t) : b(t) {}
 	float sumData() {
 		float sum = 0;
 
-		static_for<0, Count>::apply([&](auto i) {
+		static_for<0, sizeof...(Args)>::apply([&](auto i) {
 			auto val = std::get<i.value>(b);
-			if constexpr ( std::is_floating_point_v<gett<i.value,type>::type> ) {
+			if constexpr (std::is_floating_point_v<gett<i.value, type>::type>) {
 				sum += val;
 			}
 			if constexpr (std::is_integral_v<gett<i.value, type>::type>) {
-				sum += val;
+				sum += (float)val;
 			}
 			if constexpr (std::is_same_v<gett<i.value, type>::type, std::string>) {
-				sum += std::atof(val.c_str());
+				sum += (float)std::atof(val.c_str());
 			}
-		});
+			});
 		return sum;
 	}
 
 };
 
 int main() {
-	make_tuple<3,int,std::string,float> tuple;
-	std::get<int>(tuple.b) = 1;
-	std::get<std::string>(tuple.b) = "2.524";
-	std::get<float>(tuple.b) = 3.553;
-
+	make_tuple<int, std::string, float> tuple({1,"5,6",3.5});
 	std::cout << tuple.sumData();
 }
